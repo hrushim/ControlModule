@@ -9,6 +9,7 @@
 #define	NETWORKSTATS_H
 
 #define PRINT_NETSTATS 1
+#define RANGE 100
 
 #if ROUTER
 
@@ -30,23 +31,43 @@
 
 #include "MyInfo.h"
 #include "LkmOps.h"
+#include "SocketOps.h"
+
+
+// This class stores the Network statistics that are required to calculate Effective Distances.
+// The heartbeating mechanism works as follows:
+// Every host node, stores two types of statistics
+// Type (1) Stats related to the number of packets it transmits
+// Type (2) Stats related to the number of packets received from all other nodes
+// Periodically, the injector broadcasts this information on the network so that other nodes
+// on the network can make use of Type (2) information from the received heartbeats and calculate
+// effective distances by using their own Type (1) information
+//
+// This class also implements a thread which periodically logs the statistics and effective distances
+// into a file, which can then be used by other applications, e.g. SMS application.
 
 class NetworkStats {
 public:
 
-    static uint32_t numTx;
-    static uint32_t numLastTx;
-    static uint8_t sessionNum;
-    static uint8_t lastSessionNum;
+    // Type (1)
+    static uint32_t numTx; // Number of heartbeats transmitted by the host node in the current session
+    static uint32_t numLastTx; // Number of heartbeats transmitted by the host node in the previous session. This is used for
+                            // calculating Effective Distances
+    static uint8_t sessionNum; // Current session number, updated by the session thread
+    static uint8_t lastSessionNum; // Previous session number, this is used for calculating
 
+    // Type (2)
     struct nodeInfo {
+
+        // This structure is used to store the received statistics.
+
         bool usedFlag;
 
         char nodeName[10];
         char ipAddress[20];
         char macAddress[20];
 
-        uint8_t ed;
+        uint8_t ed; // this stores the effective distance from the host node
 
         uint32_t numRx;
         uint8_t rxSession;
@@ -59,6 +80,14 @@ public:
         struct nodeInfo *nextIndex;
     };
 
+    // Received statistics are stored in a combination of hashtable and linked list. NodeList is a
+    // table of 255 entries. This is the limit of the network. The network cannot grow more than 255 nodes.
+    // To store RX statistics, mac addresses of originator nodes are hashed into the table nodeList.
+    // The hashfunction is nothing but the value of the last byte of the MAC address. If two nodes in the
+    // network have MACs such that their last bytes are same, the node that joins the network first is hashed 
+    // into the table and the second one is linked to the hashed entry for the first node.
+    //
+    
     static uint8_t nodeCount;
     static struct nodeInfo nodeList[255];
 
@@ -69,10 +98,6 @@ public:
         key = *(mac + 5);
 
         if (nodeList[key].usedFlag == false) {
-#if PRINT_NETSTATS
-            printf("\nKey = %d(%x) Checking mac %x:%x:%x:%x:%x:%x Entry empty", key, key, *mac, *(mac + 1), *(mac + 2), *(mac + 3), *(mac + 4), *(mac + 5));
-            fflush(stdout);
-#endif
             return false;
 
         } else {
@@ -83,16 +108,8 @@ public:
             }
 
             if (nodePtr == NULL) {
-#if PRINT_NETSTATS
-                printf("\nKey = %d(%x) Checking mac %x:%x:%x:%x:%x:%x No entry found", key, key, *mac, *(mac + 1), *(mac + 2), *(mac + 3), *(mac + 4), *(mac + 5));
-                fflush(stdout);
-#endif
                 return false;
             } else {
-#if PRINT_NETSTATS
-                printf("\nKey = %d(%x) Checking mac %x:%x:%x:%x:%x:%x Entry found", key, key, *mac, *(mac + 1), *(mac + 2), *(mac + 3), *(mac + 4), *(mac + 5));
-                fflush(stdout);
-#endif
                 return true;
             }
         }
@@ -107,10 +124,9 @@ public:
         if (nodeList[key].usedFlag == false) {
 
 #if PRINT_NETSTATS
-            printf("\nKey = %d(%x) Adding entry mac %x:%x:%x:%x:%x:%x in place of (Entry empty)", key, key, *mac, *(mac + 1), *(mac + 2), *(mac + 3), *(mac + 4), *(mac + 5));
+            printf("\nAdding new node in place of empty key=%d %x:%x", key, (uint8_t)*(mac), (uint8_t)*(mac + 1));
             fflush(stdout);
 #endif
-
 
             strncpy(nodeList[key].nodeName, name, 9);
             nodeList[key].nodeName[9] = NULL;
@@ -132,9 +148,10 @@ public:
         } else {
 
 #if PRINT_NETSTATS
-            printf("\nKey = %d(%x) Adding entry mac %x:%x:%x:%x:%x:%x in place of (Entry found)", key, key, *mac, *(mac + 1), *(mac + 2), *(mac + 3), *(mac + 4), *(mac + 5));
+            printf("\nLinking new node in place of empty %x:%x", (uint8_t)*(mac), (uint8_t)*(mac + 1));
             fflush(stdout);
 #endif
+
 
             struct nodeInfo *newNode = new nodeInfo();
             struct nodeInfo *nodePtr = nodeList[key].nextIndex;
@@ -164,19 +181,23 @@ public:
     static void updateEdFromMe(char *mac, uint32_t rxNumPackets, uint8_t rxSessionNum, uint32_t rxLastNumPackets, uint8_t rxLastSessionNum) {
 
         uint8_t key;
+        SocketOps sockOps;
 
         key = *(mac + 5);
 
         if (nodeList[key].usedFlag == false) {
 
-            printf("\n\nSomething wrong. Should not have come here!!");
+#if PRINT_NETSTATS
+            printf("\n\nupdateEdFromMe().Something wrong key=%d %x:%x. Should not have come here!!", key, (uint8_t)*(mac), (uint8_t)*(mac + 1));
+            fflush(stdout);
+#endif
             exit(1);
 
         } else {
 
             struct nodeInfo *nodePtr = &nodeList[key];
 
-            while (memcmp(nodePtr->macAddress, mac, 6) != 0 && nodePtr != NULL) {
+            while (memcmp(nodePtr->macAddress, (uint8_t *) mac, 6) != 0 && nodePtr != NULL) {
                 nodePtr = nodePtr->nextIndex;
             }
 
@@ -186,8 +207,38 @@ public:
             }
 
 
-            printf("\nUpdating ED rxLastSessNum=%d rxLastNumPack=%d txLastSessNum=%d txLastNumPack=%d", rxLastSessionNum, rxLastNumPackets, lastSessionNum, numLastTx);
+            if (rxLastSessionNum == lastSessionNum) {
 
+                uint32_t r = rxLastNumPackets;
+                uint32_t s = numLastTx;
+                uint8_t distance = 255;
+
+                if (r >= s) {
+                    if (r == 0 || s == 0) {
+                        distance = 255;
+                    } else {
+                        distance = (uint8_t) ((s * RANGE) / r);
+                    }
+                } else {
+                    if (s != 0) {
+                        if ((((255 - RANGE) * r) / s) >= 255)
+                            distance = 1;
+                        else
+                            distance = (uint8_t) (255 - (((255 - RANGE) * r) / s));
+                    } else {
+                        distance = 255;
+                    }
+
+                }
+
+
+                nodePtr->ed = distance;
+
+#if PRINT_NETSTATS
+                printf("\nUpdating ED=%d for %x:%x:%x:%x:%x:%x", distance, (uint8_t)*(mac), (uint8_t)*(mac + 1), (uint8_t)*(mac + 2), (uint8_t)*(mac + 3), (uint8_t)*(mac + 4), (uint8_t)*(mac + 5));
+#endif
+
+            }
             gettimeofday(&nodePtr->lastRxUpdateTime, NULL);
         }
 
@@ -201,7 +252,7 @@ public:
 
         if (nodeList[key].usedFlag == false) {
 
-            printf("\n\nSomething wrong. Should not have come here!!");
+            printf("\n\nupdateStatsFromMe() Something wrong. Should not have come here!!");
             exit(1);
 
         } else {
@@ -218,28 +269,23 @@ public:
             }
 
             if (nodePtr->rxSession == txSessionNum) {
-#if PRINT_NETSTATS
-                printf("\nUpdating my rxstats, incrementing numRxPackets in session %d", nodePtr->rxSession);
-                fflush(stdout);
-#endif
                 nodePtr->numRx++;
+                gettimeofday(&nodePtr->lastRxUpdateTime, NULL);
             } else if (nodePtr->rxSession < txSessionNum) {
-#if PRINT_NETSTATS
-                printf("\nUpdating my rxstats, changing session from %d to %d and incrementing numRxPackets", nodePtr->rxSession, txSessionNum);
-                fflush(stdout);
-#endif
                 nodePtr->numLastRx = nodePtr->numRx;
                 nodePtr->rxLastSession = nodePtr->rxSession;
                 nodePtr->numRx = 1;
                 nodePtr->rxSession = txSessionNum;
+                gettimeofday(&nodePtr->lastRxUpdateTime, NULL);
+            } else {
+                //Allow this entry to first become stale get cleaned
             }
-
-            gettimeofday(&nodePtr->lastRxUpdateTime, NULL);
         }
     }
 
-    static void *logStats(void *ptr) {
+    static void *logStatsAndCleanup(void *ptr) {
 
+        SocketOps sockOps;
         LkmOps lkmOps;
         int i = 0;
         struct timeval lastTxTime, currTime;
@@ -247,8 +293,25 @@ public:
         gettimeofday(&lastTxTime, NULL);
         while (lkmOps.checkManifoldLkmStatus() == 1) {
 
+
             gettimeofday(&currTime, NULL);
-            if ((currTime.tv_sec - lastTxTime.tv_sec) >= 10) {
+            if ((currTime.tv_sec - lastTxTime.tv_sec) >= 20) {
+
+                FILE *fp = NULL;
+                char filename[100];
+
+                memset(filename, '\0', 100);
+
+#if IS_EMB_DEV
+                sprintf(filename, "%s", GNST_PATH);
+#else
+                sprintf(filename, "%s%s", getenv("HOME"), STATS_FILE_PATH);
+#endif
+                if ((fp = fopen(filename, "w")) == NULL) {
+                    printf("\nError: %s file could not be opened.\n", filename);
+                    exit(1);
+                }
+
 
 #if PRINT_NETSTATS
                 system("clear");
@@ -270,13 +333,57 @@ public:
                             printf("%x:%x:%x:%x:%x:%x\n", (uint8_t) nodePtr->macAddress[0], (uint8_t) nodePtr->macAddress[1], (uint8_t) nodePtr->macAddress[2], (uint8_t) nodePtr->macAddress[3], (uint8_t) nodePtr->macAddress[4], (uint8_t) nodePtr->macAddress[5]);
                             printf("\t# Packets %d (%d):\n", nodePtr->numRx, nodePtr->rxSession);
                             printf("\t# Packets %d (%d):\n", nodePtr->numLastRx, nodePtr->rxLastSession);
+                            printf("\tED: %d\n", nodePtr->ed);
+                            printf("\tTime Diff: %ld\n", currTime.tv_sec - nodePtr->lastRxUpdateTime.tv_sec);
 #endif
+
+                            fprintf(fp, "\n%s", nodePtr->nodeName);
+                            fprintf(fp, " %x:%x:%x:%x:%x:%x", (uint8_t) nodePtr->macAddress[0], (uint8_t) nodePtr->macAddress[1], (uint8_t) nodePtr->macAddress[2], (uint8_t) nodePtr->macAddress[3], (uint8_t) nodePtr->macAddress[4], (uint8_t) nodePtr->macAddress[5]);
+                            fprintf(fp, " %x:%x:%x:%x:%x:%x", (uint8_t)sockOps.gMac[0], (uint8_t)sockOps.gMac[1], (uint8_t)sockOps.gMac[2], (uint8_t)sockOps.gMac[3], (uint8_t)sockOps.gMac[4], (uint8_t)sockOps.gMac[5]);
+                            fprintf(fp, " ED = %d", nodePtr->ed);
+
+
+                            if (nodePtr->nextIndex == NULL) {
+
+                                if ((currTime.tv_sec - nodePtr->lastRxUpdateTime.tv_sec) > 90) {
+#if PRINT_NETSTATS
+                                    printf("\n\nCleaning up %x:%x:%x:%x:%x:%x !\n\n", (uint8_t)*(nodePtr->macAddress), (uint8_t)*(nodePtr->macAddress + 1), (uint8_t)*(nodePtr->macAddress + 2), (uint8_t)*(nodePtr->macAddress + 3), (uint8_t)*(nodePtr->macAddress + 4), (uint8_t)*(nodePtr->macAddress + 5));
+                                    fflush(stdout);
+#endif
+                                    nodeCount--;
+                                    nodePtr->usedFlag = false;
+                                }
+
+                            } else {
+                                if ((currTime.tv_sec - nodePtr->lastRxUpdateTime.tv_sec) > 90) {
+#if PRINT_NETSTATS
+                                    printf("\n\nNot sure if this will ever get printed!\n\n");
+                                    fflush(stdout);
+#endif
+                                    memcpy(&nodePtr->ed, &nodePtr->nextIndex->ed, 1);
+                                    memcpy(&nodePtr->ipAddress, &nodePtr->nextIndex->ipAddress, 20);
+                                    memcpy(&nodePtr->lastRxUpdateTime, &nodePtr->nextIndex->lastRxUpdateTime, sizeof (struct timeval));
+                                    memcpy(&nodePtr->macAddress, &nodePtr->nextIndex->macAddress, 20);
+                                    nodePtr->nextIndex = nodePtr->nextIndex->nextIndex;
+                                    memcpy(&nodePtr->nodeName, &nodePtr->nextIndex->nodeName, 10);
+                                    memcpy(&nodePtr->numLastRx, &nodePtr->nextIndex->numLastRx, 4);
+                                    memcpy(&nodePtr->numRx, &nodePtr->nextIndex->numRx, 4);
+                                    memcpy(&nodePtr->rxLastSession, &nodePtr->nextIndex->rxLastSession, 1);
+                                    memcpy(&nodePtr->rxSession, &nodePtr->nextIndex->rxSession, 1);
+
+                                    //TODO: free memory
+
+                                    nodeCount--;
+                                }
+                            }
+
                             nodePtr = nodePtr->nextIndex;
                         }
                     }
                     sched_yield();
 
                 }
+                fclose(fp);
                 gettimeofday(&lastTxTime, NULL);
             }
             sched_yield();
@@ -302,7 +409,7 @@ public:
 
     static void run() {
         MyInfo myInfo;
-        pthread_create(&tStats, NULL, NetworkStats::logStats, (void *) myInfo.iFaceName);
+        pthread_create(&tStats, NULL, NetworkStats::logStatsAndCleanup, (void *) myInfo.iFaceName);
     }
 
     static void join() {

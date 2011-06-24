@@ -41,6 +41,9 @@
 
 using namespace std;
 
+// This is another important Class which sniffs the incoming heartbeat packets and populates the network statistics 
+// and updates the virtual distances and logs necessary data into files.
+
 class Sniffer {
 private:
     static pthread_t tSniff;
@@ -249,7 +252,7 @@ private:
 
                 NetworkStats netStats;
 
-                netStats.updateEdFromMe((char *) mac_temp, ntohl(num_rx_nbyte_order), rx_session_nbyte_order, ntohl(num_last_rx_nbyte_order), last_rx_session_nbyte_order);
+                netStats.updateEdFromMe((char *) originator_mac, ntohl(num_rx_nbyte_order), rx_session_nbyte_order, ntohl(num_last_rx_nbyte_order), last_rx_session_nbyte_order);
 
             }
         }

@@ -9,14 +9,16 @@
 
 char MyInfo::nodeName[10];
 char MyInfo::iFaceName[10];
+char MyInfo::wanIfaceName[10];
 char MyInfo::ipAddress[20];
 
 MyInfo::MyInfo() {
 }
 
-MyInfo::MyInfo(char *nName, char *iFace, char *ipAdd) {
+MyInfo::MyInfo(char *nName, char *iFace, char *wanifacename, char *ipAdd) {
     strncpy(nodeName, nName, 10);
     strncpy(iFaceName, iFace, 10);
+    strncpy(wanIfaceName, wanifacename, 10);
     strncpy(ipAddress, ipAdd, 20);
 }
 

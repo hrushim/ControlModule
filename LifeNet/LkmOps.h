@@ -11,6 +11,8 @@
 #include<stdio.h>
 #include <stdint.h>
 
+// This class performs all the functions that are directly related to the kernel module
+
 class LkmOps {
 public:
     LkmOps();

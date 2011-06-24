@@ -43,6 +43,43 @@
 
 using namespace std;
 
+// This is one of the most important classes of this module and handles that periodic heartbeat packet injection functionality. 
+// All heartbeat packets that are transmitted as raw sockets have the following structure:
+//
+// byte (0-13)     - Ethernet header [DST_MAC][SRC_MAC][PROTO]
+//
+// byte (14-19)    - Originator MAC Address
+// byte (20-23)    - Originator IP Address in network byte order
+// byte (24-33)    - Originator Node Name
+//
+// byte (34)        - Flag (Whether the Originator node is connected to the internet)
+//
+// if byte (34) = 1
+//      byte (35)       - Number of DNS entries (lets assume 3, which is the maximum limit)
+//      byte (36 - 39)  - DNS IP address 1 in network byte order
+//      byte (39 - 42)  - DNS IP address 2 in network byte order
+//      byte (43 - 46)  - DNS IP address 3 in network byte order
+//
+//      byte (47)       - TX current Session number of originator node
+//      byte (48 - 51)  - Number of packets transmitted in TX current session number by the originator node
+//      byte (52)       - TX previous Session number of originator node
+//      byte (53 - 56)  - Number of packets transmitted in TX previous session number by the originator node
+//
+//      byte (57)       - Num of RX entries (this is equal to the number of nodes in the network) - lets assume N
+//      byte (58 - 63)  - MAC address of entry 1
+//      byte (64)       - RxSession by the originator node for the node corresponding to entry 1
+//      byte (65 - 68)  - numRxPackets in RxSession by the originator node for the node corresponding to entry 1
+//      byte (69)       - RxPreviousSession by the originator node for the node corresponding to entry 1
+//      byte (70 - 73)  - numRxPackets in RxPreviousSession by the originator node for the node corresponding to entry 1
+//      .
+//      .
+//      .for all remaining (N - 1) entries
+//      .
+//      .
+//
+// if byte (34) = 0, then the structure would remain the same except the DNS entries would be absent.
+
+
 class Injector {
 private:
     static pthread_t tInject;

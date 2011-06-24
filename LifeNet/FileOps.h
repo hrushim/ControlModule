@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+// Class meant for some file operations
+
 class FileOps {
 public:
     FileOps();
