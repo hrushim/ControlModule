@@ -42,11 +42,13 @@ int main(int argc, char** argv) {
     injector.run();
     sniffer.run();
     checkInternet.run();
-    sessiosTimer.startTimer(30);
+    sessiosTimer.startTimer(60);
+    netStats.run();
 
     checkInternet.join();
     injector.join();
     sniffer.join();
+    netStats.join();
 
     return 0;
 }

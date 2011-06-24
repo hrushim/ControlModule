@@ -8,6 +8,7 @@
 #ifndef MYINFO_H
 #define	MYINFO_H
 
+#include<stdio.h>
 #include <string.h>
 
 class MyInfo {

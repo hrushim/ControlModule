@@ -9,7 +9,7 @@
 #define	SNIFFER_H
 
 #define BCAST_MAC_ADDR "FF:FF:FF:FF:FF:FF"
-#define PRINT_SNIFF 1
+#define PRINT_SNIFF 0
 #define BUFFER_LEN 1024
 #define MANIFOLD_UPDATE_TYPE 0x3434
 #define SOCKET_SELECT_TIMEOUT 0
@@ -32,6 +32,7 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <iostream>
+#include<stdio.h>
 
 #include "MyInfo.h"
 #include "LkmOps.h"

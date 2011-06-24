@@ -7,6 +7,7 @@
 
 #include "NetworkStats.h"
 
+pthread_t NetworkStats::tStats;
 uint8_t NetworkStats::sessionNum;
 uint8_t NetworkStats::lastSessionNum;
 uint32_t NetworkStats::numTx;

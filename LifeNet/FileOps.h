@@ -10,6 +10,7 @@
 
 #define MAX_NUM_DNS_TX 3
 
+#include<stdio.h>
 #include <iostream>
 #include <string.h>
 #include <stdlib.h>

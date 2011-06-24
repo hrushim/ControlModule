@@ -8,6 +8,7 @@
 #ifndef CHECKINTERNET_H
 #define	CHECKINTERNET_H
 
+#include<stdio.h>
 #include<iostream>
 #include<stdint.h>
 #include <pthread.h>

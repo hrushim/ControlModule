@@ -21,12 +21,15 @@
 #endif
 
 
-
+#include<stdio.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <iostream>
 #include <sys/time.h>
+
+#include "MyInfo.h"
+#include "LkmOps.h"
 
 class NetworkStats {
 public:
@@ -158,7 +161,7 @@ public:
         }
     }
 
-    static void updateEdFromMe(char *mac, uint32_t rxNumPackets,  uint8_t rxSessionNum, uint32_t rxLastNumPackets, uint8_t rxLastSessionNum) {
+    static void updateEdFromMe(char *mac, uint32_t rxNumPackets, uint8_t rxSessionNum, uint32_t rxLastNumPackets, uint8_t rxLastSessionNum) {
 
         uint8_t key;
 
@@ -182,9 +185,9 @@ public:
                 exit(1);
             }
 
-            
+
             printf("\nUpdating ED rxLastSessNum=%d rxLastNumPack=%d txLastSessNum=%d txLastNumPack=%d", rxLastSessionNum, rxLastNumPackets, lastSessionNum, numLastTx);
-            
+
             gettimeofday(&nodePtr->lastRxUpdateTime, NULL);
         }
 
@@ -214,14 +217,13 @@ public:
                 exit(1);
             }
 
-            if (nodePtr->rxSession==txSessionNum) {
+            if (nodePtr->rxSession == txSessionNum) {
 #if PRINT_NETSTATS
                 printf("\nUpdating my rxstats, incrementing numRxPackets in session %d", nodePtr->rxSession);
                 fflush(stdout);
 #endif
                 nodePtr->numRx++;
-            }
-            else if (nodePtr->rxSession < txSessionNum) {
+            } else if (nodePtr->rxSession < txSessionNum) {
 #if PRINT_NETSTATS
                 printf("\nUpdating my rxstats, changing session from %d to %d and incrementing numRxPackets", nodePtr->rxSession, txSessionNum);
                 fflush(stdout);
@@ -236,15 +238,49 @@ public:
         }
     }
 
-    static void logStats() {
+    static void *logStats(void *ptr) {
 
+        LkmOps lkmOps;
         int i = 0;
+        struct timeval lastTxTime, currTime;
 
-        for(i = 0; i<255; i++) {
+        gettimeofday(&lastTxTime, NULL);
+        while (lkmOps.checkManifoldLkmStatus() == 1) {
 
-            if(nodeList[i].usedFlag) {
+            gettimeofday(&currTime, NULL);
+            if ((currTime.tv_sec - lastTxTime.tv_sec) >= 10) {
 
+#if PRINT_NETSTATS
+                system("clear");
+                printf("TX Statistics:\n");
+                printf("# Packets %d (%d):\n", numTx, sessionNum);
+                printf("# Packets %d (%d):\n", numLastTx, lastSessionNum);
+#endif
+
+                for (i = 0; i < 255; i++) {
+
+                    if (nodeList[i].usedFlag) {
+
+                        struct nodeInfo *nodePtr = &nodeList[i];
+
+                        while (nodePtr != NULL) {
+
+#if PRINT_NETSTATS
+                            printf("RX Statistics:\n");
+                            printf("%x:%x:%x:%x:%x:%x\n", (uint8_t) nodePtr->macAddress[0], (uint8_t) nodePtr->macAddress[1], (uint8_t) nodePtr->macAddress[2], (uint8_t) nodePtr->macAddress[3], (uint8_t) nodePtr->macAddress[4], (uint8_t) nodePtr->macAddress[5]);
+                            printf("\t# Packets %d (%d):\n", nodePtr->numRx, nodePtr->rxSession);
+                            printf("\t# Packets %d (%d):\n", nodePtr->numLastRx, nodePtr->rxLastSession);
+#endif
+                            nodePtr = nodePtr->nextIndex;
+                        }
+                    }
+                    sched_yield();
+
+                }
+                gettimeofday(&lastTxTime, NULL);
             }
+            sched_yield();
+
         }
     }
 
@@ -264,12 +300,22 @@ public:
         }
     }
 
+    static void run() {
+        MyInfo myInfo;
+        pthread_create(&tStats, NULL, NetworkStats::logStats, (void *) myInfo.iFaceName);
+    }
+
+    static void join() {
+        pthread_join(tStats, NULL);
+    }
+
     NetworkStats();
     NetworkStats(const NetworkStats& orig);
     virtual ~NetworkStats();
 
 private:
 
+    static pthread_t tStats;
 };
 
 #endif	/* NETWORKSTATS_H */

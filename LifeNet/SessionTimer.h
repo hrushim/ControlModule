@@ -13,6 +13,7 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <iostream>
+#include<stdio.h>
 
 #include "NetworkStats.h"
 

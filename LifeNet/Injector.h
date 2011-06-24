@@ -8,7 +8,7 @@
 #ifndef INJECTOR_H
 #define	INJECTOR_H
 
-#define PRINT_INJECT 1
+#define PRINT_INJECT 0
 #define BUFFER_LEN 1024
 #define MANIFOLD_UPDATE_TYPE 0x3434
 #define DST_ETHER_ADDR "FF:FF:FF:FF:FF:FF"
@@ -24,6 +24,7 @@
 #endif
 
 
+#include<stdio.h>
 #include<iostream>
 #include<stdint.h>
 #include <pthread.h>

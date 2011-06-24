@@ -8,6 +8,7 @@
 #ifndef LKMOPS_H
 #define	LKMOPS_H
 
+#include<stdio.h>
 #include <stdint.h>
 
 class LkmOps {
