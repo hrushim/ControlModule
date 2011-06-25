@@ -8,7 +8,7 @@
 #ifndef NETWORKSTATS_H
 #define	NETWORKSTATS_H
 
-#define PRINT_NETSTATS 1
+#define PRINT_NETSTATS 0
 #define RANGE 100
 
 #if ROUTER
@@ -356,10 +356,11 @@ public:
                             printf("\tTime Diff: %ld\n", currTime.tv_sec - nodePtr->lastRxUpdateTime.tv_sec);
 #endif
 
-                            fprintf(fp, "\n%s", nodePtr->nodeName);
+                            fprintf(fp, "%s", nodePtr->nodeName);
                             fprintf(fp, " %x:%x:%x:%x:%x:%x", (uint8_t) nodePtr->macAddress[0], (uint8_t) nodePtr->macAddress[1], (uint8_t) nodePtr->macAddress[2], (uint8_t) nodePtr->macAddress[3], (uint8_t) nodePtr->macAddress[4], (uint8_t) nodePtr->macAddress[5]);
                             fprintf(fp, " %x:%x:%x:%x:%x:%x", (uint8_t) sockOps.gMac[0], (uint8_t) sockOps.gMac[1], (uint8_t) sockOps.gMac[2], (uint8_t) sockOps.gMac[3], (uint8_t) sockOps.gMac[4], (uint8_t) sockOps.gMac[5]);
-                            fprintf(fp, " ED = %d", nodePtr->ed);
+                            fprintf(fp, " %s", nodePtr->ipAddress);
+                            fprintf(fp, " ED = %d\n", nodePtr->ed);
 
 
                             if (nodePtr->nextIndex == NULL) {

@@ -49,7 +49,7 @@ public class InboxView extends javax.swing.JFrame {
                 ChatMessage msg = (ChatMessage) MessageQueue.unreadMessageVector.elementAt(i);
                 System.out.println(i + ":" + MessageQueue.unreadCount + ":" + msg.payload + msg.rxTime.toString());
                 System.out.flush();
-                listModel.addElement("[" + msg.rxTime.toString() + "] " + msg.srcName + "\n" + msg.payload);
+                listModel.addElement("[" + msg.rxTime.toString() + "] " + msg.srcName + " " + msg.payload);
             }
         }
 
@@ -73,7 +73,7 @@ public class InboxView extends javax.swing.JFrame {
         setTitle("New Messages");
         setResizable(false);
 
-        jList1.setFont(new java.awt.Font("Bitstream Charter", 0, 11)); // NOI18N
+        jList1.setFont(new java.awt.Font("DejaVu Sans", 0, 12)); // NOI18N
         jList1.setModel(new javax.swing.AbstractListModel() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
             public int getSize() { return strings.length; }

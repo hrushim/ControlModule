@@ -8,7 +8,7 @@
 #ifndef SESSIONTIMER_H
 #define	SESSIONTIMER_H
 
-#define PRINT_SESSION 1
+#define PRINT_SESSION 0
 
 #include <sys/time.h>
 #include <signal.h>

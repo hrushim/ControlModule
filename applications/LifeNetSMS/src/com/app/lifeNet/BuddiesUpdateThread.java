@@ -49,9 +49,8 @@ public class BuddiesUpdateThread extends Thread {
             form.setMyIP(gnsM.getMyIP());
             form.setMyName(gnsM.getMyName());
             form.setMyMac(gnsM.getMyMac());
+*/
 
- *
- */
             try {
                 Thread.sleep(timeout);
             } catch (InterruptedException ex) {

@@ -209,9 +209,10 @@ else
         exit
 fi
 
+#sudo -u hrushi /usr/sbin/lifenet_chat &
 
 echo -e -n "\nStarting LifeNet Control Module"
-/bin/lifenet $NODE_NAME $WIFI_IF $ETH_IF "$WIFI_IP" 30 5 5
+/bin/lifenet $NODE_NAME $WIFI_IF $ETH_IF "$WIFI_IP" 30 5 5 
 
 #if [ "$MYMANET_STORE_PATH" == "1"  ]; then
 
@@ -246,6 +247,7 @@ echo -e -n "\nStarting LifeNet Control Module"
 
 #echo -e "\n============ LifeNet_Beta 1.0 unload utility ============"
 
+#rmmod manifold 2>&1 | wc -l
 #echo -e -n "\nRemoving LifeNet Kernel Module"
 #COMMAND_OUT=`rmmod manifold 2>&1 | wc -l`
 #sleep 2

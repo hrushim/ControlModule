@@ -29,7 +29,6 @@ public class LifeNet extends javax.swing.JFrame implements Runnable {
     public static int MSG_START_REP_CNT = 50;
     public static int MSG_REP_CNT = 5;
     public static String selectedUserName; // Not sure
-    public static String HOSTS_FILE_NAME = System.getProperty("user.home") + "/.LifeNetData/config/hosts.txt";
     public static String GNST_FILE_NAME = System.getProperty("user.home") + "/.LifeNetData/config/gnst.txt";
     static String MANIFOLD_FILE_NAME = "/proc/txstats";
     boolean RUN_FLAG = false;
@@ -42,7 +41,7 @@ public class LifeNet extends javax.swing.JFrame implements Runnable {
     public LifeNet() {
         initComponents();
 
-        LifeNetApi.init(HOSTS_FILE_NAME, GNST_FILE_NAME);
+        LifeNetApi.init(GNST_FILE_NAME);
 
         namesLM = new DefaultListModel();
         NamesList.setModel(namesLM);
@@ -60,18 +59,20 @@ public class LifeNet extends javax.swing.JFrame implements Runnable {
         namesLM.clear();
         StringBuilder sb = new StringBuilder();
         try {
-            BufferedReader in = new BufferedReader(new FileReader(HOSTS_FILE_NAME));
+            BufferedReader in = new BufferedReader(new FileReader(GNST_FILE_NAME));
             String str;
 
+            //
             int i = 0;
             while ((str = in.readLine()) != null) {
+                //System.out.append("\nGNST " + i++);
                 String[] strArr = str.split(" ");
-                sb.append(strArr[3]);
+                sb.append(strArr[0]);
                 // strVector.add(strArr[3]);
-                if (LifeNetApi.getMyName().trim().equals(strArr[3])) {
-                    namesLM.addElement(strArr[3]);
+                if (LifeNetApi.getMyName().trim().equals(strArr[0])) {
+                    namesLM.addElement(strArr[0]);
                 } else {
-                    namesLM.addElement(strArr[3] + "    [(ED = " + LifeNetApi.getED(LifeNetApi.getMyName(), strArr[3]) + "), (" + LifeNetApi.getNumTxNumRx(LifeNetApi.getMyName(), strArr[3]) + ")]");
+                    namesLM.addElement(strArr[0] + "    [(ED = " + LifeNetApi.getED(strArr[0]) + ")]");
                 }
                 sb.append(" ");
             }

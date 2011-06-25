@@ -35,7 +35,7 @@ public class InboxWindow extends javax.swing.JFrame {
         } else {
             for (int i = 0; i < MessageQueue.readCount; i++) {
                 ChatMessage msg = (ChatMessage) MessageQueue.readMessageVector.elementAt(i);
-                listModel.addElement("[" + msg.rxTime.toString() + "] " + msg.srcName + "\n" + msg.payload);
+                listModel.addElement("[" + msg.rxTime.toString() + "] " + msg.srcName + " " + msg.payload);
             }
         }
 
@@ -58,7 +58,7 @@ public class InboxWindow extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Inbox");
 
-        jList1.setFont(new java.awt.Font("Bitstream Charter", 0, 11)); // NOI18N
+        jList1.setFont(new java.awt.Font("DejaVu Sans", 0, 12)); // NOI18N
         jList1.setModel(new javax.swing.AbstractListModel() {
             String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
             public int getSize() { return strings.length; }
@@ -71,12 +71,10 @@ public class InboxWindow extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 451, Short.MAX_VALUE)
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 451, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
         );
 

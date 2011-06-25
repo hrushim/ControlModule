@@ -32,16 +32,17 @@ int main(int argc, char** argv) {
     }
 
     // parameters that should be added - injection interval, tolerance ED update
-
+#if PRINT_MAIN
     cout << "Arguments entered:\n";
     cout << "1." << argv[1] << "\n";
     cout << "2." << argv[2] << "\n";
     cout << "3." << argv[3] << "\n";
     cout << "4." << argv[4] << "\n";
     cout << "5." << argv[5] << "\n";
-    cout << "5." << argv[6] << "\n";
-    cout << "5." << argv[7] << "\n";
+    cout << "6." << argv[6] << "\n";
+    cout << "6." << argv[7] << "\n";
     fflush(stdout);
+#endif
 
     MyInfo myInfo(argv[1], argv[2], argv[3], argv[4]);
 

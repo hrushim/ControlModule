@@ -335,7 +335,7 @@ private:
         packet += extractGwInfo(packet, &is_a_gateway, &num_dns_ip, dns_ip1, dns_ip2, dns_ip3, &len);
 
         struct in_addr temp_ip_in_addr;
-        temp_ip_in_addr.s_addr = ip_long_nbyte_order;
+        temp_ip_in_addr.s_addr = ntohl(ip_long_nbyte_order);
         checkAndAddNewHost((uint8_t *) originator_mac, (char *) inet_ntoa(temp_ip_in_addr), node_name);
 
         packet += extractTxInfoAndUpdateCounters(packet, originator_mac);

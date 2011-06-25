@@ -17,6 +17,7 @@
 #include <string.h>
 #include<stdio.h>
 
+#define PRINT_MAIN 0
 
 // Function prototype declarations
 
