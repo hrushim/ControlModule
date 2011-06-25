@@ -1,0 +1,9 @@
+#!/bin/bash
+
+sudo rmmod manifold
+
+echo -e "\n============ LifeNet_Beta 1.0 unload utility ============"
+
+touch $APP_DATA_PATH/install_log
+killall -9 lifenet | wc -l 1>> $APP_DATA_PATH/install_log
+
