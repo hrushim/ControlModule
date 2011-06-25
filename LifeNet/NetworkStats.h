@@ -52,13 +52,13 @@ public:
     // Type (1)
     static uint32_t numTx; // Number of heartbeats transmitted by the host node in the current session
     static uint32_t numLastTx; // Number of heartbeats transmitted by the host node in the previous session. This is used for
-                            // calculating Effective Distances
+    // calculating Effective Distances
     static uint8_t sessionNum; // Current session number, updated by the session thread
     static uint8_t lastSessionNum; // Previous session number, this is used for calculating
 
     // Type (2)
-    struct nodeInfo {
 
+    struct nodeInfo {
         // This structure is used to store the received statistics.
 
         bool usedFlag;
@@ -68,6 +68,7 @@ public:
         char macAddress[20];
 
         uint8_t ed; // this stores the effective distance from the host node
+        uint8_t edLast;
 
         uint32_t numRx;
         uint8_t rxSession;
@@ -87,7 +88,7 @@ public:
     // network have MACs such that their last bytes are same, the node that joins the network first is hashed 
     // into the table and the second one is linked to the hashed entry for the first node.
     //
-    
+
     static uint8_t nodeCount;
     static struct nodeInfo nodeList[255];
 
@@ -231,15 +232,31 @@ public:
 
                 }
 
-
-                nodePtr->ed = distance;
-
+                if (nodePtr->edLast > 0 && nodePtr->edLast < 255) {
+                    int newEd;
+                    newEd = (distance + nodePtr->edLast) / 2;
+                    if (abs(newEd - nodePtr->ed) > 5) {
+                        nodePtr->edLast = nodePtr->ed;
+                        nodePtr->ed = newEd;
 #if PRINT_NETSTATS
-                printf("\nUpdating ED=%d for %x:%x:%x:%x:%x:%x", distance, (uint8_t)*(mac), (uint8_t)*(mac + 1), (uint8_t)*(mac + 2), (uint8_t)*(mac + 3), (uint8_t)*(mac + 4), (uint8_t)*(mac + 5));
+                        printf("\nUpdating ED=%d for %x:%x:%x:%x:%x:%x", nodePtr->ed, (uint8_t)*(mac), (uint8_t)*(mac + 1), (uint8_t)*(mac + 2), (uint8_t)*(mac + 3), (uint8_t)*(mac + 4), (uint8_t)*(mac + 5));
 #endif
 
+                    }
+                } else {
+                    int newEd = distance;
+                    if (abs(newEd - nodePtr->ed) > 5) {
+                        nodePtr->edLast = nodePtr->ed;
+                        nodePtr->ed = distance;
+#if PRINT_NETSTATS
+                        printf("\nUpdating ED=%d for %x:%x:%x:%x:%x:%x", nodePtr->ed, (uint8_t)*(mac), (uint8_t)*(mac + 1), (uint8_t)*(mac + 2), (uint8_t)*(mac + 3), (uint8_t)*(mac + 4), (uint8_t)*(mac + 5));
+#endif
+
+                    }
+                }
+
             }
-            gettimeofday(&nodePtr->lastRxUpdateTime, NULL);
+            //       gettimeofday(&nodePtr->lastRxUpdateTime, NULL);
         }
 
     }
@@ -339,7 +356,7 @@ public:
 
                             fprintf(fp, "\n%s", nodePtr->nodeName);
                             fprintf(fp, " %x:%x:%x:%x:%x:%x", (uint8_t) nodePtr->macAddress[0], (uint8_t) nodePtr->macAddress[1], (uint8_t) nodePtr->macAddress[2], (uint8_t) nodePtr->macAddress[3], (uint8_t) nodePtr->macAddress[4], (uint8_t) nodePtr->macAddress[5]);
-                            fprintf(fp, " %x:%x:%x:%x:%x:%x", (uint8_t)sockOps.gMac[0], (uint8_t)sockOps.gMac[1], (uint8_t)sockOps.gMac[2], (uint8_t)sockOps.gMac[3], (uint8_t)sockOps.gMac[4], (uint8_t)sockOps.gMac[5]);
+                            fprintf(fp, " %x:%x:%x:%x:%x:%x", (uint8_t) sockOps.gMac[0], (uint8_t) sockOps.gMac[1], (uint8_t) sockOps.gMac[2], (uint8_t) sockOps.gMac[3], (uint8_t) sockOps.gMac[4], (uint8_t) sockOps.gMac[5]);
                             fprintf(fp, " ED = %d", nodePtr->ed);
 
 
@@ -352,12 +369,20 @@ public:
 #endif
                                     nodeCount--;
                                     nodePtr->usedFlag = false;
+                                    nodePtr->ed = 0;
+                                    nodePtr->edLast = 0;
+                                    //nodePtr->lastRxUpdateTime = 0;
+                                    nodePtr->nextIndex = NULL;
+                                    nodePtr->numLastRx = 0;
+                                    nodePtr->numRx = 0;
+                                    nodePtr->rxLastSession = 0;
+                                    nodePtr->rxSession = 0;
                                 }
 
                             } else {
                                 if ((currTime.tv_sec - nodePtr->lastRxUpdateTime.tv_sec) > 90) {
 #if PRINT_NETSTATS
-                                    printf("\n\nNot sure if this will ever get printed!\n\n");
+                                    printf("\n\nNot sure if this will ever get printed! This particular section is not tested yet\n\n");
                                     fflush(stdout);
 #endif
                                     memcpy(&nodePtr->ed, &nodePtr->nextIndex->ed, 1);

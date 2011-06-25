@@ -31,17 +31,19 @@ int main(int argc, char** argv) {
         exit(0);
     }
 
+    // parameters that should be added - injection interval, tolerance ED update
+
     cout << "Arguments entered:\n";
-    cout << argv[1] << "\n";
-    cout << argv[2] << "\n";
-    cout << argv[3] << "\n";
-    cout << argv[4] << "\n";
-    cout << argv[5] << "\n";
+    cout << "1" << argv[1] << "\n";
+    cout << "2" << argv[2] << "\n";
+    cout << "3" << argv[3] << "\n";
+    cout << "4" << argv[4] << "\n";
+    cout << "5" << argv[5] << "\n";
     fflush(stdout);
 
     MyInfo myInfo(argv[1], argv[2], argv[3], argv[4]);
 
-    netStats.initStats();
+//    netStats.initStats();
 
     injector.run();
     sniffer.run();

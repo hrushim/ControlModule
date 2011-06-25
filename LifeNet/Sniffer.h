@@ -342,38 +342,6 @@ private:
 
         packet += extractRxInfoAndUpdateDistance(packet, originator_mac, &len);
 
-        //update counters without forgetting
-        /*
-                packet += extract_gw_info(packet, &is_a_gateway, &num_dns_ip, dns_ip1, dns_ip2, dns_ip3, &len);
-    
-                if (check_and_add_new_host(originator_mac, ntohl(ip_long_nbyte_order), node_name) == -1) {
-                    printf("\nThis is an invalid host (might be having duplicate IP). Do not consider its statlist. Return.");
-                    return;
-                }
-    
-                packet += extract_host_tx_info(packet, originator_mac);
-    
-                packet += extract_host_rx_info(packet, originator_mac, &len);
-            #if DEBUG
-                print_gnst();
-            #endif
-    
-                am_i_gw = (uint8_t) my_gw_status();
-            #if DEBUG
-                printf("\nAm i GW? %d\n", am_i_gw);
-                fflush(stdout);
-            #endif
-    
-                process_gw_info(am_i_gw, is_a_gateway, ip_long_nbyte_order, num_dns_ip, dns_ip1, dns_ip2, dns_ip3);
-    
-                calculate_distances();
-            #if IS_EMB_DEV
-            #else
-                write_hosts();
-                write_gnst();
-                write_refined_stats();
-            #endif
-         */
     }
 
     static void *sniffHeartbeats(void *ptr) {
