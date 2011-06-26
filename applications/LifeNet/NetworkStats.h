@@ -8,6 +8,7 @@
 #ifndef NETWORKSTATS_H
 #define	NETWORKSTATS_H
 
+#define LOG_STATS 1
 #define PRINT_NETSTATS 0
 #define RANGE 100
 
@@ -18,6 +19,7 @@
 #else
 
 #define STATS_FILE_PATH "/.LifeNetData/config/gnst.txt"
+#define LOG_FILE_PATH "/.LifeNetData/config/log.txt"
 
 #endif
 
@@ -243,6 +245,10 @@ public:
 #if PRINT_NETSTATS
                         printf("\nUpdating ED=%d for %x:%x:%x:%x:%x:%x", nodePtr->ed, (uint8_t)*(mac), (uint8_t)*(mac + 1), (uint8_t)*(mac + 2), (uint8_t)*(mac + 3), (uint8_t)*(mac + 4), (uint8_t)*(mac + 5));
 #endif
+                        char command[50] = "";
+                        memset(command, '\0', 50);
+                        sprintf(command, "echo distance %x:%x:%x:%x:%x:%x %d > /proc/wdl", (uint8_t)*(mac), (uint8_t)*(mac + 1), (uint8_t)*(mac + 2), (uint8_t)*(mac + 3), (uint8_t)*(mac + 4), (uint8_t)*(mac + 5), nodePtr->ed);
+                        system(command);
 
                     }
                 } else {
@@ -253,6 +259,10 @@ public:
 #if PRINT_NETSTATS
                         printf("\nUpdating ED=%d for %x:%x:%x:%x:%x:%x", nodePtr->ed, (uint8_t)*(mac), (uint8_t)*(mac + 1), (uint8_t)*(mac + 2), (uint8_t)*(mac + 3), (uint8_t)*(mac + 4), (uint8_t)*(mac + 5));
 #endif
+                        char command[50] = "";
+                        memset(command, '\0', 50);
+                        sprintf(command, "echo distance %x:%x:%x:%x:%x:%x %d > /proc/wdl", (uint8_t)*(mac), (uint8_t)*(mac + 1), (uint8_t)*(mac + 2), (uint8_t)*(mac + 3), (uint8_t)*(mac + 4), (uint8_t)*(mac + 5), nodePtr->ed);
+                        system(command);
 
                     }
                 }
@@ -318,11 +328,10 @@ public:
 
                 FILE *fp = NULL;
                 char filename[100];
-
                 memset(filename, '\0', 100);
 
-#if IS_EMB_DEV
-                sprintf(filename, "%s", GNST_PATH);
+#if ROUTER
+                sprintf(filename, "%s", STATS_FILE_PATH);
 #else
                 sprintf(filename, "%s%s", getenv("HOME"), STATS_FILE_PATH);
 #endif
@@ -408,10 +417,21 @@ public:
                             nodePtr = nodePtr->nextIndex;
                         }
                     }
+
                     sched_yield();
 
                 }
                 fclose(fp);
+
+#ifndef ROUTER
+#if LOG_STATS
+                sprintf(filename, "date >> %s%s", getenv("HOME"), LOG_FILE_PATH);
+                system(filename);
+                sprintf(filename, "cat %s%s >> %s%s", getenv("HOME"), STATS_FILE_PATH, getenv("HOME"), LOG_FILE_PATH);
+                system(filename);
+#endif
+#endif
+
                 gettimeofday(&lastTxTime, NULL);
             }
             sched_yield();

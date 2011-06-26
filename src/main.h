@@ -57,12 +57,6 @@ struct net_device *d=NULL;                      /*Main DEVICE structure for this
 /*Manifold Routing is Controlled using /proc/wdl : start and stop commands*/
 int global_manifold_disable=0;           /* 1 : Manifold Routing OFF     0: Manifold Routing ON*/
 
-int g_manifold_session_transmitted_count=0;      /*Count of number of Manifold packets transmitted through this module in this session*/
-int g_manifold_last_session_transmitted_count=0;      /*Count of number of Manifold packets transmitted through this module in the previous session*/
-
-int g_per_session_dup_cnt = 0;
-int g_last_per_session_dup_cnt = 0;
-
 uint8_t g_broadcast_mac[6]={0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
 
 /*Prototype Declarations*/

@@ -31,7 +31,7 @@ Georgia Institute of Technology, Atlanta, USA
 
 
 #include "distance_list_functions.h"
-#include "stat_list_functions.h"
+//#include "stat_list_functions.h"
 #include "path_list_functions.h"
 #include "string_functions.h"
 
@@ -283,6 +283,7 @@ static int handle_commands(char command[COMMAND_LENGTH], char arg1[ARGUMENT_LENG
 int rxstats_read(char* page, char** start, off_t off, int count, int* eof, void *data)
 {
         int len=0;
+/*
 	struct stat_list *tmp = NULL;	
 
         if (off > 0) {
@@ -304,6 +305,7 @@ int rxstats_read(char* page, char** start, off_t off, int count, int* eof, void 
 
 		tmp = tmp->next;
 	}
+*/
 	return len;
 }
 
@@ -318,6 +320,7 @@ int rxstats_read(char* page, char** start, off_t off, int count, int* eof, void 
 int txstats_read(char* page, char** start, off_t off, int count, int* eof, void *data){
   
         int len=0;
+/*
 	struct stat_list *tmp = NULL;	
 
         if (off > 0) {
@@ -337,6 +340,7 @@ int txstats_read(char* page, char** start, off_t off, int count, int* eof, void 
 
 		tmp = tmp->next;
 	}
+*/
 	return len;
 }
 

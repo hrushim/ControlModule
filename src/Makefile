@@ -23,7 +23,7 @@ EXTRA_CFLAGS += -DMYMANET_STORE_PATH=$(MYMANET_STORE_PATH)
 endif
 
 obj-m += manifold.o
-manifold-objs := main_module.o string_functions.o proc_functions.o distance_list_functions.o stat_list_functions.o timer_functions.o timestamp_list_functions.o path_list_functions.o
+manifold-objs := main_module.o string_functions.o proc_functions.o distance_list_functions.o timestamp_list_functions.o path_list_functions.o
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
@@ -36,4 +36,5 @@ clean:
 	rm -f Module.symvers
 	rm -f Module.markers
 	rm -f modules.order
+	rm -r *~
 
